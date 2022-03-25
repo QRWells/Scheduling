@@ -16,7 +16,7 @@ namespace Simulator;
 public enum TaskType
 {
     IoBounding,
-    CpuBounding,
+    CpuBounding
 }
 
 public enum ProcessState
@@ -29,26 +29,55 @@ public enum ProcessState
 
 public class Process
 {
-    public ProcessState State = ProcessState.Runnable;
-    public ulong ProcessId { get; set; }
+    /// <summary>
+    ///     Time at which the process arrives in the ready queue.
+    /// </summary>
+    private readonly ulong _arriveTime;
+
+    /// <summary>
+    ///     Time required by a process for CPU execution.
+    /// </summary>
+    private ulong _burstTime;
+
+    /// <summary>
+    ///     Time at which process completes its execution.
+    /// </summary>
+    private ulong _completeTime;
+
     private Job _job;
 
-    public Process(ulong processId, Job job, ulong arriveTime, ulong runningTime)
+    public Process(ulong processId, Job job, ulong arriveTime)
     {
         ProcessId = processId;
         _job = job;
         _arriveTime = arriveTime;
-        _runningTime = runningTime;
+        _completeTime = job.TotalDuration;
     }
 
+    public string? Name { get; set; }
+    public int Priority { get; init; } = 0;
+    public ProcessState State { get; private set; } = ProcessState.Runnable;
+
+    public ulong ProcessId { get; set; }
+
+    /// <summary>
+    ///     Time Difference between completion time and arrival time.
+    /// </summary>
     public ulong TurnaroundTime => _completeTime - _arriveTime;
 
-    private ulong _arriveTime;
-    private ulong _completeTime = ulong.MaxValue;
-    private ulong _runningTime;
+    /// <summary>
+    ///     Time Difference between turn around time and burst time.
+    /// </summary>
+    public ulong WaitTime => TurnaroundTime - _burstTime;
 
-    public void setComplete(ulong currentTime)
+    public void SetComplete(ulong currentTime)
     {
+        State = ProcessState.Terminated;
         _completeTime = currentTime;
+    }
+
+    public (TaskType, ulong, bool) Next()
+    {
+        return (TaskType.CpuBounding, _arriveTime, false);
     }
 }

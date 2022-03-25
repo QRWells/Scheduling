@@ -15,8 +15,22 @@ namespace Simulator;
 
 public class Job
 {
-    private Queue<(TaskType, ulong)> _tasks = new();
-    public ulong CpuDuration { get; set; } = 0;
-    public ulong IoDuration { get; set; } = 0;
-    public ulong TotalDuration { get; set; } = 0;
+    private readonly Queue<(TaskType, ulong)> _tasks = new();
+    public ulong CpuDuration { get; private set; }
+    public ulong IoDuration { get; private set; }
+    public ulong TotalDuration { get; private set; }
+
+    public void AddTask(TaskType taskType, ulong duration)
+    {
+        _tasks.Enqueue((taskType, duration));
+        CpuDuration += taskType == TaskType.CpuBounding ? duration : 0;
+        IoDuration += taskType == TaskType.IoBounding ? duration : 0;
+        TotalDuration += duration;
+    }
+
+    public (TaskType, ulong) FetchTask()
+    {
+        var (taskType, duration) = _tasks.Dequeue();
+        return (taskType, duration);
+    }
 }
