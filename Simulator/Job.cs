@@ -15,12 +15,12 @@ namespace Simulator;
 
 public class Job
 {
-    private readonly Queue<(TaskType, ulong)> _tasks = new();
-    public ulong CpuDuration { get; private set; }
-    public ulong IoDuration { get; private set; }
-    public ulong TotalDuration { get; private set; }
+    private readonly Queue<(TaskType, int)> _tasks = new();
+    public int CpuDuration { get; private set; }
+    public int IoDuration { get; private set; }
+    public int TotalDuration { get; private set; }
 
-    public void AddTask(TaskType taskType, ulong duration)
+    public void AddTask(TaskType taskType, int duration)
     {
         _tasks.Enqueue((taskType, duration));
         CpuDuration += taskType == TaskType.CpuBounding ? duration : 0;
@@ -28,9 +28,14 @@ public class Job
         TotalDuration += duration;
     }
 
-    public (TaskType, ulong) FetchTask()
+    public (TaskType, int) FetchTask()
     {
         var (taskType, duration) = _tasks.Dequeue();
         return (taskType, duration);
+    }
+
+    public void Tick(int ticks)
+    {
+        throw new NotImplementedException();
     }
 }

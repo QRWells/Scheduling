@@ -15,19 +15,43 @@ namespace Simulator.Schedulers;
 
 public interface IScheduler
 {
-    void OnProcessReady(Os os, ulong pid);
+    void OnProcessReady(Os os, int pid);
     void SwitchProcess(Os os);
 
     void OnTick(Os os)
     {
+        foreach (var pid in os.ExpiredTimeout())
+        {
+            OnProcessReady(os, pid);
+        }
+
         BurstProcess(os);
     }
 
     void BurstProcess(Os os)
     {
+        var clock = os.Clock;
+        var process = os.CurrentProcess();
+        var (task, duration) = process.Burst(clock);
+        var complete = process.IsCompleted;
+        var pid = process.ProcessId;
+
+        if (task.HasValue)
+        {
+            RunTask(os, task.Value, duration, pid);
+        }
+        else if (complete)
+        {
+            os.CompleteProcess(pid);
+            if (os.IsProcessRunning(pid))
+                SwitchProcess(os);
+        }
+
+        OnProcessBurst(os, pid);
     }
 
-    void RunTask(Os os, TaskType type, ulong duration, ulong pid)
+
+    void RunTask(Os os, TaskType type, int duration, int pid)
     {
         switch (type)
         {
@@ -40,11 +64,9 @@ public interface IScheduler
             default:
                 throw new ArgumentOutOfRangeException(nameof(type), type, null);
         }
-
-        ;
     }
 
-    void RunIoBoundTask(Os os, ulong duration, ulong pid)
+    void RunIoBoundTask(Os os, int duration, int pid)
     {
         var clock = os.Clock;
         var p = os.GetProcess(pid);
@@ -56,7 +78,11 @@ public interface IScheduler
         if (os.IsProcessRunning(pid)) SwitchProcess(os);
     }
 
-    void RunCpuBoundTask(Os os, ulong duration, ulong pid)
+    void RunCpuBoundTask(Os os, int duration, int pid)
+    {
+    }
+
+    void OnProcessBurst(Os os, int pid)
     {
     }
 }

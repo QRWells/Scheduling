@@ -32,52 +32,71 @@ public class Process
     /// <summary>
     ///     Time at which the process arrives in the ready queue.
     /// </summary>
-    private readonly ulong _arriveTime;
+    public int ArriveTime { get; private set; }
 
     /// <summary>
     ///     Time required by a process for CPU execution.
     /// </summary>
-    private ulong _burstTime;
+    public int BurstTime { get; init; }
+
+    public int TimeHaveBurst { get; private set; }
+
+    public int RemainingTime => BurstTime - TimeHaveBurst;
 
     /// <summary>
     ///     Time at which process completes its execution.
     /// </summary>
-    private ulong _completeTime;
+    private int _completeTime;
 
     private Job _job;
 
-    public Process(ulong processId, Job job, ulong arriveTime)
+    public Process(int processId, Job job, int arriveTime)
     {
         ProcessId = processId;
         _job = job;
-        _arriveTime = arriveTime;
-        _completeTime = job.TotalDuration;
+        ArriveTime = arriveTime;
+        BurstTime = job.TotalDuration;
     }
 
     public string? Name { get; set; }
     public int Priority { get; init; } = 0;
     public ProcessState State { get; private set; } = ProcessState.Runnable;
 
-    public ulong ProcessId { get; set; }
+    public int ProcessId { get; set; }
 
     /// <summary>
     ///     Time Difference between completion time and arrival time.
     /// </summary>
-    public ulong TurnaroundTime => _completeTime - _arriveTime;
+    public int TurnaroundTime => _completeTime - ArriveTime;
 
     /// <summary>
     ///     Time Difference between turn around time and burst time.
     /// </summary>
-    public ulong WaitTime => TurnaroundTime - _burstTime;
+    public int WaitTime => TurnaroundTime - BurstTime;
 
-    public void SetComplete(ulong currentTime)
+    public bool IsCompleted => State == ProcessState.Terminated;
+
+    public void SetComplete(int currentTime)
     {
         State = ProcessState.Terminated;
         _completeTime = currentTime;
     }
 
-    public (TaskType, ulong, bool) Next()
+    public (TaskType, int, bool) Next()
     {
-        return (TaskType.CpuBounding, _arriveTime, false);
+        // TODO: Need implementation
+        return (TaskType.CpuBounding, ArriveTime, false);
+    }
+
+    public (TaskType?, int) Burst(int ticks)
+    {
+        // TODO: Need implementation
+        TimeHaveBurst += ticks;
+        if (RemainingTime <= 0)
+        {
+            return (null, 0);
+        }
+
+        return (TaskType.CpuBounding, RemainingTime);
     }
 }
