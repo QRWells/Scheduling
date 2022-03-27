@@ -32,7 +32,7 @@ public class Os
     /// The scheduler used in the OS.
     /// TODO: add multi-scheduler support
     /// </summary>
-    private readonly IScheduler _scheduler;
+    private IScheduler _scheduler = new FcfsScheduler();
 
     /// <summary>
     /// waiting queue of the OS.
@@ -56,9 +56,8 @@ public class Os
     /// </summary>
     private int _lastPid;
 
-    public Os(IScheduler scheduler)
+    public Os()
     {
-        _scheduler = scheduler;
         _running = true;
     }
 
@@ -71,6 +70,12 @@ public class Os
     /// Current clock of the OS.
     /// </summary>
     public int Clock { get; private set; }
+
+    public void SetSchedule(IScheduler scheduler)
+    {
+        _scheduler = scheduler;
+        _scheduler.Os = this;
+    }
 
     public void Run()
     {
@@ -117,9 +122,9 @@ public class Os
             throw new ArgumentException("pid not exist.", nameof(pid));
     }
 
-    public Process CurrentProcess()
+    public Process? CurrentProcess()
     {
-        return _processes[_currentPid];
+        return _currentPid < 1 ? null : _processes[_currentPid];
     }
 
     public void CompleteProcess(int pid)
@@ -134,7 +139,7 @@ public class Os
     {
         ++Clock;
         _waitList.Tick();
-        _scheduler.OnTick(this);
+        _scheduler.OnTick();
 
         // clean up finished processes
         foreach (var process in
@@ -146,9 +151,16 @@ public class Os
                    _processes.Values.Any(process => process.State != ProcessState.Terminated);
     }
 
+    /// <summary>
+    /// Switch out the current process.
+    /// </summary>
+    /// <param name="pid"></param>
+    /// <param name="duration"></param>
+    /// <exception cref="NotImplementedException"></exception>
     public void AwaitProcess(int pid, int duration)
     {
-        throw new NotImplementedException();
+        // schedule process pid to the I/O completion time.
+        _waitList.AddTimeout(pid, Clock + duration);
     }
 
     public bool IsProcessRunning(int pid)

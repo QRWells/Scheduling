@@ -11,78 +11,105 @@
 
 #endregion
 
+using System.Diagnostics;
+
 namespace Simulator.Schedulers;
 
 public interface IScheduler
 {
-    void OnProcessReady(Os os, int pid);
-    void SwitchProcess(Os os);
+    internal Os Os { get; set; }
 
-    void OnTick(Os os)
+    void OnProcessReady(int pid);
+    void SwitchProcess();
+
+    void OnTick()
     {
-        foreach (var pid in os.ExpiredTimeout())
+        foreach (var pid in Os.ExpiredTimeout())
         {
-            OnProcessReady(os, pid);
+            OnProcessReady(pid);
         }
 
-        BurstProcess(os);
+        BurstProcess();
     }
 
-    void BurstProcess(Os os)
+    void BurstProcess()
     {
-        var clock = os.Clock;
-        var process = os.CurrentProcess();
-        var (task, duration) = process.Burst(clock);
+        var clock = Os.Clock;
+        var process = Os.CurrentProcess();
+        if (process == null)
+        {
+            SwitchProcess();
+        }
+
+        Debug.Assert(process != null);
+        // burst 1 tick, 
+        var task = process.Burst(clock);
         var complete = process.IsCompleted;
         var pid = process.ProcessId;
 
-        if (task.HasValue)
+        if (task != null)
         {
-            RunTask(os, task.Value, duration, pid);
+            RunTask(task.Type, task.Duration, pid);
         }
         else if (complete)
         {
-            os.CompleteProcess(pid);
-            if (os.IsProcessRunning(pid))
-                SwitchProcess(os);
+            Os.CompleteProcess(pid);
+            if (Os.IsProcessRunning(pid))
+                SwitchProcess();
         }
 
-        OnProcessBurst(os, pid);
+        // Preemptive
+        OnProcessBurst(pid);
     }
 
 
-    void RunTask(Os os, TaskType type, int duration, int pid)
+    void RunTask(TaskType type, int duration, int pid)
     {
         switch (type)
         {
             case TaskType.IoBounding:
-                RunIoBoundTask(os, pid, duration);
+                RunIoBoundTask(pid, duration);
                 break;
             case TaskType.CpuBounding:
-                RunCpuBoundTask(os, pid, duration);
+                RunCpuBoundTask(pid, duration);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(type), type, null);
         }
     }
 
-    void RunIoBoundTask(Os os, int duration, int pid)
+    /// <summary>
+    /// Switch out for I/O task.
+    /// </summary>
+    /// <param name="duration"></param>
+    /// <param name="pid"></param>
+    void RunIoBoundTask(int duration, int pid)
     {
-        var clock = os.Clock;
-        var p = os.GetProcess(pid);
-        var (task, id, isCompleted) = p.Next();
+        var clock = Os.Clock;
+        var p = Os.GetProcess(pid);
+        var isCompleted = p.BumpToNext(out _);
+        // TODO: log
         if (isCompleted)
-            os.CompleteProcess(id);
+            Os.CompleteProcess(pid);
         else
-            os.AwaitProcess(pid, duration);
-        if (os.IsProcessRunning(pid)) SwitchProcess(os);
+            Os.AwaitProcess(pid, duration);
+        if (Os.IsProcessRunning(pid)) SwitchProcess();
     }
 
-    void RunCpuBoundTask(Os os, int duration, int pid)
+    /// <summary>
+    /// Do nothing
+    /// </summary>
+    /// <param name="duration"></param>
+    /// <param name="pid"></param>
+    void RunCpuBoundTask(int duration, int pid)
     {
     }
 
-    void OnProcessBurst(Os os, int pid)
+    /// <summary>
+    /// Implemented by schedulers with preemption
+    /// </summary>
+    /// <param name="pid"></param>
+    void OnProcessBurst(int pid)
     {
     }
 }
