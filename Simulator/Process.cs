@@ -37,9 +37,8 @@ public class Process
 {
     private readonly Queue<Task> _tasks = new();
 
-    public Process(int processId, int arriveTime)
+    public Process(int arriveTime)
     {
-        ProcessId = processId;
         ArriveTime = arriveTime;
     }
 
