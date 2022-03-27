@@ -24,10 +24,7 @@ public interface IScheduler
 
     void OnTick()
     {
-        foreach (var pid in Os.ExpiredTimeout())
-        {
-            OnProcessReady(pid);
-        }
+        foreach (var pid in Os.ExpiredTimeout()) OnProcessReady(pid);
 
         BurstProcess();
     }
@@ -36,10 +33,7 @@ public interface IScheduler
     {
         var clock = Os.Clock;
         var process = Os.CurrentProcess();
-        if (process == null)
-        {
-            SwitchProcess();
-        }
+        if (process == null) SwitchProcess();
 
         Debug.Assert(process != null);
         // burst 1 tick, 
@@ -79,7 +73,7 @@ public interface IScheduler
     }
 
     /// <summary>
-    /// Switch out for I/O task.
+    ///     Switch out for I/O task.
     /// </summary>
     /// <param name="duration"></param>
     /// <param name="pid"></param>
@@ -97,7 +91,7 @@ public interface IScheduler
     }
 
     /// <summary>
-    /// Do nothing
+    ///     Do nothing
     /// </summary>
     /// <param name="duration"></param>
     /// <param name="pid"></param>
@@ -106,7 +100,7 @@ public interface IScheduler
     }
 
     /// <summary>
-    /// Implemented by schedulers with preemption
+    ///     Implemented by schedulers with preemption
     /// </summary>
     /// <param name="pid"></param>
     void OnProcessBurst(int pid)

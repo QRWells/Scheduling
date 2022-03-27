@@ -132,7 +132,7 @@ public class Process
     }
 
     /// <summary>
-    /// Bump to next task to simulate await on I/O task.
+    ///     Bump to next task to simulate await on I/O task.
     /// </summary>
     /// <param name="task">the current I/O task for log.</param>
     /// <returns>bool indicate if this process has completed.</returns>
@@ -146,14 +146,14 @@ public class Process
     }
 
     /// <summary>
-    /// Burst 1 tick to simulate execution.
+    ///     Burst 1 tick to simulate execution.
     /// </summary>
     /// <param name="clock"></param>
     /// <returns></returns>
     public Task? Burst(int clock)
     {
         ++TimeHaveBurst;
-        
+
         // process finished.
         if (TimeHaveBurst >= BurstTime)
         {
