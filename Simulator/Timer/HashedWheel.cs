@@ -20,6 +20,8 @@ public sealed class HashedWheel<T>
     public HashedWheel(int wheelSize = 8, int resolution = 1)
     {
         if (wheelSize < 1 || resolution < 1) throw new ArgumentException();
+        // Avoid unreachable buckets.
+        if (resolution != 1 && wheelSize % resolution == 0) throw new ArgumentException();
         _buckets = new HashedWheelBucket<T>[wheelSize];
         for (var i = 0; i < wheelSize; i++)
             _buckets[i] = new HashedWheelBucket<T>();
