@@ -1,9 +1,18 @@
 ﻿using Simulator;
 using Simulator.Schedulers;
+using Terminal.Gui;
+
+Application.Run<App>();
 
 Console.WriteLine("Hello, World!");
 
+var os = new Os();
 var fifo = new FcfsScheduler();
-var os = new Os(fifo);
+os.SetSchedule(fifo);
 
-os.Run();
+var p1 = new Process(0);
+p1.AddTask(10,TaskType.CpuBounding);
+
+os.AddProcess(ref p1);
+
+os.Step();
