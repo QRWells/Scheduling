@@ -73,25 +73,28 @@ public class Os
 
     public void Run()
     {
-        while (!_running)
+        while (_running)
             Tick();
     }
 
     public void Step(int time = 1)
     {
         if (time <= 0) throw new ArgumentOutOfRangeException(nameof(time));
-        for (var i = 0; i < time && !_running; ++i)
+        for (var i = 0; i < time && _running; ++i)
             Tick();
     }
 
-    public void AddProcess(Process process)
+    public void AddProcess(params Process[] processes)
     {
-        var pid = GetPId();
+        foreach (var process in processes)
+        {
+            var pid = GetPId();
 
-        process.ProcessId = pid;
-        _processes.Add(pid, process);
+            process.ProcessId = pid;
+            _processes.Add(pid, process);
 
-        _waitList.AddTimeout(pid, process.ArriveTime);
+            _waitList.AddTimeout(pid, process.ArriveTime);
+        }
     }
 
     public Process GetProcess(int pid)
@@ -101,10 +104,22 @@ public class Os
 
     public void SwitchProcess(int pid)
     {
+        if (_currentPid > 0)
+            if (_processes[_currentPid].State == ProcessState.Running)
+            {
+                _processes[_currentPid].State = ProcessState.Waiting;
+                _waitList.AddTimeout(_currentPid, Clock);
+            }
+
         if (_processes.ContainsKey(pid))
+        {
             _currentPid = pid;
+            _processes[_currentPid].State = ProcessState.Running;
+        }
         else
+        {
             throw new ArgumentException("pid not exist.", nameof(pid));
+        }
     }
 
     public Process? CurrentProcess()
@@ -132,8 +147,8 @@ public class Os
                      .Where(process => process.Value.State == ProcessState.Terminated)
                      .ToList())
             _processes.Remove(process.Key);
-        _running = _processes.Count != 0 ||
-                   _processes.Values.Any(process => process.State != ProcessState.Terminated);
+        _running = _processes.Count != 0 &&
+                   _processes.Any(process => process.Value.State != ProcessState.Terminated);
     }
 
     /// <summary>
@@ -165,5 +180,10 @@ public class Os
         while (iter.MoveNext() && pid == iter.Current)
             ++pid;
         return pid;
+    }
+
+    public void Stop()
+    {
+        _running = false;
     }
 }
