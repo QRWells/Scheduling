@@ -101,9 +101,9 @@ public class Os
         }
     }
 
-    public void AddProcess(ref Process process)
+    public void AddProcess(Process process)
     {
-        var pid = _lastPid++;
+        var pid = ++_lastPid;
         process.ProcessId = pid;
         _processes.Add(pid, process);
         _waitList.AddTimeout(pid, process.ArriveTime);

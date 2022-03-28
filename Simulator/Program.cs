@@ -8,6 +8,6 @@ os.SetSchedule(fifo);
 var p1 = new Process(0);
 p1.AddTask(10);
 
-os.AddProcess(ref p1);
+os.AddProcess(p1);
 
 os.Step();

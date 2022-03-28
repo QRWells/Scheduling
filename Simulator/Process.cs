@@ -119,6 +119,10 @@ public class Process
 
     public void AddTask(int duration, TaskType taskType = TaskType.CpuBounding)
     {
+        if (duration <= 0)
+        {
+            throw new ArgumentException("Duration must be positive.");
+        }
         _tasks.Enqueue(new Task { Type = taskType, Duration = duration });
         CpuDuration += taskType == TaskType.CpuBounding ? duration : 0;
         IoDuration += taskType == TaskType.IoBounding ? duration : 0;
