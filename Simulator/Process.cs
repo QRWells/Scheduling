@@ -37,7 +37,7 @@ public class Process
 {
     private readonly Queue<Task> _tasks = new();
 
-    public Process(int arriveTime)
+    public Process(int arriveTime = 0)
     {
         ArriveTime = arriveTime;
     }
@@ -50,7 +50,7 @@ public class Process
     /// <summary>
     ///     Time at which the process arrives in the ready queue.
     /// </summary>
-    public int ArriveTime { get; }
+    public int ArriveTime { get; private set; }
 
     /// <summary>
     ///     Time required by a process for CPU execution.
@@ -95,7 +95,7 @@ public class Process
     /// <summary>
     ///     the current state of the process.
     /// </summary>
-    public ProcessState State { get; private set; } = ProcessState.Runnable;
+    public ProcessState State { get; internal set; } = ProcessState.Runnable;
 
     /// <summary>
     ///     the id of the process.
@@ -124,6 +124,25 @@ public class Process
         CpuDuration += taskType == TaskType.CpuBounding ? duration : 0;
         IoDuration += taskType == TaskType.IoBounding ? duration : 0;
         BurstTime += duration;
+    }
+
+    public void AddTask(Task task)
+    {
+        AddTask(task.Duration, task.Type);
+    }
+
+    public Process WithTasks(params Task[] tasks)
+    {
+        foreach (var task in tasks)
+            AddTask(task.Duration, task.Type);
+
+        return this;
+    }
+
+    public Process WithArriveTime(int arriveTime = 0)
+    {
+        ArriveTime = arriveTime;
+        return this;
     }
 
     public void SetComplete(int currentTime)
