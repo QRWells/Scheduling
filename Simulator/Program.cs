@@ -1,13 +1,18 @@
 ﻿using Simulator;
 using Simulator.Schedulers;
+using Task = Simulator.Task;
 
 var os = new Os();
-var fifo = new FcfsScheduler();
-os.SetSchedule(fifo);
+var sjf = new SjfScheduler();
+os.SetSchedule(sjf);
 
-var p1 = new Process(0);
-p1.AddTask(10);
+var p1 = new Process().WithArriveTime().WithTasks(
+    new Task { Duration = 40, Type = TaskType.CpuBounding });
+var p2 = new Process().WithArriveTime(5).WithTasks(
+    new Task { Duration = 30, Type = TaskType.CpuBounding });
 
-os.AddProcess(p1);
+os.AddProcess(p1, p2);
+
+os.Step(70);
 
 os.Step();
