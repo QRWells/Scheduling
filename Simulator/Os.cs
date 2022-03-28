@@ -98,10 +98,10 @@ public class Os
     public void AddProcess(Process process)
     {
         var pid = GetPId();
-        
+
         process.ProcessId = pid;
         _processes.Add(pid, process);
-        
+
         _waitList.AddTimeout(pid, process.ArriveTime);
     }
 
@@ -171,13 +171,10 @@ public class Os
 
     private int GetPId()
     {
-        if(_processes.Count == 0)
-            return 1;
         var pid = 1;
         using var iter = _processes.Keys.GetEnumerator();
         while (iter.MoveNext() && pid == iter.Current)
             ++pid;
-        
         return pid;
     }
 }
