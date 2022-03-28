@@ -77,22 +77,11 @@ public class Os
             Tick();
     }
 
-    public void Step(int time)
+    public void Step(int time = 1)
     {
-        for (var i = 0; i < time; ++i)
-        {
-            if (!_running) break;
+        if (time <= 0) throw new ArgumentOutOfRangeException(nameof(time));
+        for (var i = 0; i < time && !_running; ++i)
             Tick();
-        }
-    }
-
-    public void Step()
-    {
-        for (var i = 0; i < Interval; ++i)
-        {
-            if (!_running) break;
-            Tick();
-        }
     }
 
     public void AddProcess(Process process)
