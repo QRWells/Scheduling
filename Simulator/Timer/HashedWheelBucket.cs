@@ -43,4 +43,9 @@ internal class HashedWheelBucket<T>
     {
         foreach (var timeout in _timeouts) timeout.TickARound();
     }
+
+    public bool Empty()
+    {
+        return _timeouts.Count == 0;
+    }
 }

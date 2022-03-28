@@ -35,6 +35,11 @@ public sealed class HashedWheel<T>
 
     public int WheelSize => _buckets.Length;
 
+    public bool Empty()
+    {
+        return _buckets.All(b => b.Empty());
+    }
+
     public void Tick()
     {
         CurrentTick += Resolution;
