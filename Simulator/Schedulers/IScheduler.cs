@@ -33,9 +33,13 @@ public interface IScheduler
     {
         var clock = Os.Clock;
         var process = Os.CurrentProcess();
-        if (process == null) SwitchProcess();
 
-        Debug.Assert(process != null);
+        if (process == null)
+        {
+            SwitchProcess();
+            return;
+        }
+
         // burst 1 tick, 
         var task = process.Burst(clock);
         var complete = process.IsCompleted;

@@ -29,7 +29,7 @@ public sealed class HashedWheel<T>
         Resolution = resolution;
     }
 
-    public int CurrentTick { get; private set; }
+    public int CurrentTick { get; private set; } = -1;
 
     public int Resolution { get; }
 
@@ -37,20 +37,15 @@ public sealed class HashedWheel<T>
 
     public void Tick()
     {
-        _buckets[CurrentTick % _buckets.Length].Tick();
         CurrentTick += Resolution;
+        _buckets[CurrentTick % _buckets.Length].Tick();
     }
 
     public void AddTimeout(T value, int deadline)
     {
         var round = deadline / WheelSize;
         var timeout = new HashedWheelTimeout<T>(value, round);
-        AddTimeout(timeout);
-    }
-
-    private void AddTimeout(HashedWheelTimeout<T> timeout)
-    {
-        _buckets[CurrentTick % WheelSize].AddTimeout(timeout);
+        _buckets[deadline % WheelSize].AddTimeout(timeout);
     }
 
     public IEnumerable<T> ExpireTimeouts()

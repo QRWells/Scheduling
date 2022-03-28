@@ -69,7 +69,7 @@ public class Os
     /// <summary>
     ///     Current clock of the OS.
     /// </summary>
-    public int Clock { get; private set; }
+    public int Clock { get; private set; } = -1;
 
     public void SetSchedule(IScheduler scheduler)
     {
