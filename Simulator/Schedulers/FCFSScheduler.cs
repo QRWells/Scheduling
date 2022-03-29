@@ -13,7 +13,7 @@
 
 namespace Simulator.Schedulers;
 
-public sealed class FcfsScheduler : IScheduler
+public sealed class FCFSScheduler : IScheduler
 {
     private readonly Queue<int> _readyQueue = new();
     private Os _os;

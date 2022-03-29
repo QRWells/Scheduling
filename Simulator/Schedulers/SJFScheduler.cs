@@ -4,16 +4,16 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 // 
 // This file is part of Project Simulator.
-// File Name   : StcfScheduler.cs
+// File Name   : SjfScheduler.cs
 // Author      : Qirui Wang
-// Created at  : 2022/03/25 6:27
+// Created at  : 2022/03/25 6:26
 // Description :
 
 #endregion
 
 namespace Simulator.Schedulers;
 
-public class StcfScheduler : IScheduler
+public sealed class SJFScheduler : IScheduler
 {
     private readonly PriorityQueue<int, int> _shortestJobFirstQueue = new();
     private Os _os;
@@ -36,19 +36,6 @@ public class StcfScheduler : IScheduler
         if (_shortestJobFirstQueue.TryDequeue(out var pid, out _))
             _os.SwitchProcess(pid);
         else
-            _os.Stop();
-    }
-
-    public void OnProcessBurst(int pid)
-    {
-        var remainingTime = _os.GetProcess(pid).RemainingTime;
-        
-        // Current process is shorter than the shortest job in the queue.
-        if (!_shortestJobFirstQueue.TryPeek(out var id, out var remain)
-            || remain >= remainingTime)
-            return;
-
-        SwitchProcess();
-        _shortestJobFirstQueue.Enqueue(pid, remainingTime);
+            _os.SwitchProcess(-1);
     }
 }
