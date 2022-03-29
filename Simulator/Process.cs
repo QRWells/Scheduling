@@ -70,7 +70,7 @@ public class Process
     /// <summary>
     ///     Time from process arrival to its first execution.
     /// </summary>
-    public int ResponseTime { get; } = -1;
+    public int ResponseTime { get; private set; } = -1;
 
     /// <summary>
     ///     total duration of the CPU bound tasks.
@@ -172,6 +172,8 @@ public class Process
     /// <returns></returns>
     public Task? Burst(int clock)
     {
+        if (TimeHaveBurst == 0)
+            ResponseTime = clock - ArriveTime - 1;
         ++TimeHaveBurst;
 
         // process finished.
