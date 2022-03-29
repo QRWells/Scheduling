@@ -48,7 +48,7 @@ public sealed class HashedWheel<T>
 
     public void AddTimeout(T value, int deadline)
     {
-        var round = deadline / WheelSize;
+        var round = deadline / WheelSize + 1;
         var timeout = new HashedWheelTimeout<T>(value, round);
         _buckets[deadline % WheelSize].AddTimeout(timeout);
     }
