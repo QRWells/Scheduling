@@ -48,7 +48,7 @@ public class Os
     ///     The scheduler used in the OS.
     ///     TODO: add multi-scheduler support
     /// </summary>
-    private IScheduler _scheduler = new FcfsScheduler();
+    private IScheduler _scheduler = new FCFSScheduler();
 
     public Os()
     {
@@ -104,17 +104,17 @@ public class Os
 
     public void SwitchProcess(int pid)
     {
-        if (_currentPid > 0)
-            if (_processes[_currentPid].State == ProcessState.Running)
-            {
-                _processes[_currentPid].State = ProcessState.Waiting;
-                _waitList.AddTimeout(_currentPid, Clock);
-            }
+        if (_currentPid > 0 && _processes[_currentPid].State == ProcessState.Running)
+            _processes[_currentPid].State = ProcessState.Waiting;
 
         if (_processes.ContainsKey(pid))
         {
             _currentPid = pid;
             _processes[_currentPid].State = ProcessState.Running;
+        }
+        else if (pid == -1)
+        {
+            _currentPid = pid;
         }
         else
         {
