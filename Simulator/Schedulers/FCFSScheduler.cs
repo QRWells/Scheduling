@@ -34,6 +34,6 @@ public sealed class FCFSScheduler : IScheduler
         if (_readyQueue.TryDequeue(out var pid))
             _os.SwitchProcess(pid);
         else
-            throw new Exception();
+            _os.SwitchProcess(-1);
     }
 }
