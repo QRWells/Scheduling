@@ -11,8 +11,6 @@
 
 #endregion
 
-using System.Diagnostics;
-
 namespace Simulator.Schedulers;
 
 public interface IScheduler
@@ -86,7 +84,6 @@ public interface IScheduler
         var clock = Os.Clock;
         var p = Os.GetProcess(pid);
         var isCompleted = p.BumpToNext(out _);
-        // TODO: log
         if (isCompleted)
             Os.CompleteProcess(pid);
         else
