@@ -11,6 +11,8 @@
 
 #endregion
 
+using Simulator.Data;
+
 namespace Simulator;
 
 public enum TaskType
@@ -117,6 +119,11 @@ public class Process
     /// </summary>
     public bool IsCompleted => State == ProcessState.Terminated;
 
+    /// <summary>
+    ///     Indicate the number of cpu executing the process.
+    /// </summary>
+    public int Cpu { get; internal set; } = 0;
+
     public void AddTask(int duration, TaskType taskType = TaskType.CpuBounding)
     {
         if (duration <= 0) throw new ArgumentException("Duration must be positive.");
@@ -186,5 +193,10 @@ public class Process
         --_tasks.Peek().Duration;
 
         return _tasks.Peek();
+    }
+
+    public ProcessInfo GetProcessInfo()
+    {
+        return new ProcessInfo(ProcessId, Cpu);
     }
 }
