@@ -35,7 +35,7 @@ public class RoundRobinTest
         Assert.NotEqual(p1.ProcessId, p2.ProcessId);
         Assert.NotEqual(p1.ProcessId, p3.ProcessId);
 
-        os.SetSchedule(new RoundRobinScheduler(1));
+        os.SetScheduler(new RoundRobinScheduler(1));
         os.Step();
 
         for (var i = 0; i < 10; ++i)
@@ -66,7 +66,7 @@ public class RoundRobinTest
         Assert.NotEqual(p1.ProcessId, p2.ProcessId);
         Assert.NotEqual(p1.ProcessId, p3.ProcessId);
 
-        os.SetSchedule(new RoundRobinScheduler(2));
+        os.SetScheduler(new RoundRobinScheduler(2));
         os.Step();
 
         for (var i = 0; i < 5; ++i)
@@ -97,7 +97,7 @@ public class RoundRobinTest
         Assert.NotEqual(p1.ProcessId, p2.ProcessId);
         Assert.NotEqual(p1.ProcessId, p3.ProcessId);
 
-        os.SetSchedule(new RoundRobinScheduler(5));
+        os.SetScheduler(new RoundRobinScheduler(5));
         os.Step();
 
         for (var i = 0; i < 4; ++i)

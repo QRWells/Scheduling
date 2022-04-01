@@ -32,7 +32,7 @@ public class SJFTest
 
         Assert.NotEqual(p1.ProcessId, p2.ProcessId);
 
-        os.SetSchedule(new SJFScheduler());
+        os.SetScheduler(new SJFScheduler());
         os.Step();
 
         // Start Running

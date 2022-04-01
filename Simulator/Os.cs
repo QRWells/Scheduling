@@ -11,6 +11,7 @@
 
 #endregion
 
+using Simulator.Data;
 using Simulator.Schedulers;
 using Simulator.Timer;
 
@@ -32,12 +33,14 @@ public class Os
     ///     The number of cores in the OS.
     ///     TODO: add multi-core support
     /// </summary>
-    private uint _core = 1;
+    internal uint Core = 1;
 
     /// <summary>
     ///     the pid of the current running process.
     /// </summary>
     private int _currentPid;
+
+    private readonly int[] _pIdOfCpu;
 
     /// <summary>
     ///     Indicates whether the OS is running.
@@ -50,8 +53,12 @@ public class Os
     /// </summary>
     private IScheduler _scheduler = new FCFSScheduler();
 
-    public Os()
+    public Os(uint core = 1)
     {
+        if (core < 1)
+            throw new ArgumentException("core must be greater than 0");
+        _pIdOfCpu = new int[core];
+
         _running = true;
     }
 
@@ -65,7 +72,7 @@ public class Os
     /// </summary>
     public int Clock { get; private set; } = -1;
 
-    public void SetSchedule(IScheduler scheduler)
+    public void SetScheduler(IScheduler scheduler)
     {
         _scheduler = scheduler;
         _scheduler.Os = this;
@@ -160,7 +167,7 @@ public class Os
     public void AwaitProcess(int pid, int duration)
     {
         // schedule process pid to the I/O completion time.
-        _waitList.AddTimeout(pid, Clock + duration);
+        _waitList.AddTimeout(pid, duration);
     }
 
     public bool IsProcessRunning(int pid)
@@ -180,6 +187,18 @@ public class Os
         while (iter.MoveNext() && pid == iter.Current)
             ++pid;
         return pid;
+    }
+
+    private IEnumerable<int> GetFreeCores()
+    {
+        return from i in _pIdOfCpu
+            where _pIdOfCpu[i] < 1
+            select i;
+    }
+
+    public SystemInfo GetCurrentSystemInfo()
+    {
+        throw new NotImplementedException();
     }
 
     public void Stop()

@@ -33,7 +33,7 @@ public class FCFSTest
 
         Assert.NotEqual(p1.ProcessId, p2.ProcessId);
 
-        os.SetSchedule(new FCFSScheduler());
+        os.SetScheduler(new FCFSScheduler());
         os.Step();
 
         // Start Running
@@ -84,7 +84,7 @@ public class FCFSTest
 
         Assert.NotEqual(p1.ProcessId, p2.ProcessId);
 
-        os.SetSchedule(new FCFSScheduler());
+        os.SetScheduler(new FCFSScheduler());
         os.Step();
 
         // Start Running

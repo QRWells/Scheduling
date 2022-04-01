@@ -35,7 +35,7 @@ public class STCFTest
         Assert.NotEqual(p1.ProcessId, p2.ProcessId);
         Assert.NotEqual(p1.ProcessId, p3.ProcessId);
 
-        os.SetSchedule(new STCFScheduler());
+        os.SetScheduler(new STCFScheduler());
         os.Step();
 
         // Start Running
