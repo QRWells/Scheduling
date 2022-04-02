@@ -15,6 +15,6 @@ namespace Simulator.Data;
 
 public record struct SystemInfo(
     int Clock,
-    int Core,
+    uint Core,
     List<ProcessInfo> Processes
 );

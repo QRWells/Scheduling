@@ -198,7 +198,8 @@ public class Os
 
     public SystemInfo GetCurrentSystemInfo()
     {
-        throw new NotImplementedException();
+        var procInfos = _processes.Select(process => process.Value.GetProcessInfo()).ToList();
+        return new SystemInfo(Clock, Core, procInfos);
     }
 
     public void Stop()

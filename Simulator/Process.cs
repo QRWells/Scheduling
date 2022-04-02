@@ -25,6 +25,11 @@ public class Task
 {
     public int Duration;
     public TaskType Type;
+
+    public override string ToString()
+    {
+        return $"{Type.ToString()}: {Duration}";
+    }
 }
 
 public enum ProcessState
