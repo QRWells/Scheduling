@@ -56,9 +56,9 @@ public sealed class App : Toplevel
 
         var statusBar = new StatusBar(new[]
         {
-            new(Key.F1, "~S~ Step", Step),
-            new StatusItem(Key.CtrlMask | Key.A, "~^A~ Add Process", AddProcess),
-            new StatusItem(Key.CtrlMask | Key.Q, "~^Q~ Quit", () =>
+            new(Key.S, "~S~ Step", Step),
+            new StatusItem(Key.CtrlMask | Key.A, "~Ctrl-A~ Add Process", AddProcess),
+            new StatusItem(Key.CtrlMask | Key.Q, "~Ctrl-Q~ Quit", () =>
             {
                 if (Quit()) RequestStop();
             })
