@@ -49,6 +49,12 @@ public class Process
         ArriveTime = arriveTime;
     }
 
+    public Process(int arriveTime, IEnumerable<Task> tasks)
+    {
+        ArriveTime = arriveTime;
+        foreach (var task in tasks.Reverse()) AddTask(task.Duration, task.Type);
+    }
+
     /// <summary>
     ///     Time at which process completes its execution.
     /// </summary>

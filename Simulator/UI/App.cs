@@ -11,27 +11,38 @@
 
 #endregion
 
+using System.Text;
+using NStack;
+using Simulator.Schedulers;
 using Terminal.Gui;
 
 namespace Simulator.UI;
 
 public sealed class App : Toplevel
 {
-    private readonly GraphView _graphView = new() { X = Pos.Center(), Y = Pos.Center() };
-    private readonly ListView _listView = new() { X = Pos.Center(), Y = Pos.Center() };
+    private readonly GraphView _graphView = new() { X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Percent(90) };
     private readonly Os _os = new();
+    private readonly ProcessDataTable _processes = new();
+    private readonly TableView _processTableView;
 
     public App()
     {
+        _os.SetScheduler(new FCFSScheduler());
+        _processTableView = new TableView(_processes) { X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Percent(90) };
         var menu = new MenuBar(new[]
         {
             new MenuBarItem("_Scheduler", new[]
             {
-                new MenuItem("_FCFS", "", () => { }, null, null, Key.ShiftMask | Key.F),
-                new MenuItem("_SJF", "", () => { }, null, null, Key.ShiftMask | Key.D),
-                new MenuItem("_STCF", "", () => { }, null, null, Key.ShiftMask | Key.T),
-                new MenuItem("_RR", "", () => { }, null, null, Key.ShiftMask | Key.R),
-                new MenuItem("_MLFQ", "", () => { }, null, null, Key.ShiftMask | Key.M)
+                new MenuItem("_FCFS", "", () => { _os.SetScheduler(new FCFSScheduler()); }, null, null,
+                    Key.ShiftMask | Key.F),
+                new MenuItem("_SJF", "", () => { _os.SetScheduler(new SJFScheduler()); }, null, null,
+                    Key.ShiftMask | Key.D),
+                new MenuItem("_STCF", "", () => { _os.SetScheduler(new STCFScheduler()); }, null, null,
+                    Key.ShiftMask | Key.T),
+                new MenuItem("_RR", "", () => { _os.SetScheduler(new RoundRobinScheduler()); }, null, null,
+                    Key.ShiftMask | Key.R),
+                new MenuItem("_MLFQ", "", () => { _os.SetScheduler(new MLFQScheduler()); }, null, null,
+                    Key.ShiftMask | Key.M)
             }),
             new MenuBarItem("_Help", new[]
             {
@@ -57,7 +68,7 @@ public sealed class App : Toplevel
 
         var tab = new TabView { X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Fill() };
         tab.AddTab(new TabView.Tab("Graph", _graphView), true);
-        tab.AddTab(new TabView.Tab("SysInfo", _listView), false);
+        tab.AddTab(new TabView.Tab("SysInfo", _processTableView), false);
 
         var window = new Window { X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Fill() };
 
@@ -77,10 +88,9 @@ public sealed class App : Toplevel
     private void Step()
     {
         _os.Step();
-        _graphView.Reset();
-
-        _graphView.Series.Add(new GanttSeries(_os));
-        _graphView.SetNeedsDisplay();
+        // TODO: Gantt graph update logic
+        _processes.Update();
+        _processTableView.SetNeedsDisplay();
     }
 
     private void AddProcess()
@@ -93,7 +103,7 @@ public sealed class App : Toplevel
             Height = 5
         };
 
-        var label = new Label("Arrive at:")
+        var arriveLabel = new Label("Arrive at:")
         {
             X = 0,
             Y = 0,
@@ -101,15 +111,21 @@ public sealed class App : Toplevel
             Height = 1,
             TextAlignment = TextAlignment.Left
         };
-        var widthEdit = new TextField("0")
+        var arriveEdit = new TextField("0")
         {
-            X = Pos.Right(label) + 1,
-            Y = Pos.Top(label),
+            X = Pos.Right(arriveLabel) + 1,
+            Y = Pos.Top(arriveLabel),
             Width = 5,
             Height = 1
         };
-        frame.Add(label);
-        frame.Add(widthEdit);
+        arriveEdit.TextChanging += args =>
+        {
+            if (args.NewText.Length <= 0) return;
+            if (!Unicode.IsNumber(args.NewText[0]))
+                args.Cancel = true;
+        };
+        frame.Add(arriveLabel);
+        frame.Add(arriveEdit);
 
 
         var frameTask = new FrameView("Tasks")
@@ -120,7 +136,8 @@ public sealed class App : Toplevel
             Height = Dim.Percent(60)
         };
         var tasks = new List<Task>();
-        var taskList = new ListView(tasks) { X = 0, Y = 11, Width = Dim.Percent(80), Height = Dim.Percent(50) };
+        var taskList = new ListView(tasks)
+            { X = 1, Y = 1, Width = Dim.Percent(90), Height = Dim.Percent(90), AllowsMultipleSelection = false };
         frameTask.Add(taskList);
 
         var labelTime = new Label("Time :")
@@ -138,15 +155,21 @@ public sealed class App : Toplevel
             Width = 15,
             Height = 1
         };
+        timeEdit.TextChanging += args =>
+        {
+            if (args.NewText.Length <= 0) return;
+            if (!Unicode.IsNumber(args.NewText[0]))
+                args.Cancel = true;
+        };
         var taskType = new[] { "CPU Bounding", "I/O Bounding" };
         var taskTypeList = new ListView(taskType)
         {
             X = 0,
             Y = Pos.Bottom(labelTime),
             Width = 15,
-            Height = 10
+            Height = 10,
+            SelectedItem = 0
         };
-        taskTypeList.SelectedItem = 0;
         var cpu = false;
         taskTypeList.SelectedItemChanged += args => cpu = args.Item == 0;
         var addTask = new Button("_Add", true)
@@ -157,7 +180,15 @@ public sealed class App : Toplevel
             Height = 1,
             TextAlignment = TextAlignment.Left
         };
-        addTask.Clicked += () => { };
+        addTask.Clicked += () =>
+        {
+            tasks.Add(new Task
+            {
+                Duration = int.Parse(Encoding.UTF8.GetString(timeEdit.Text.ToByteArray())),
+                Type = cpu ? TaskType.CpuBounding : TaskType.IoBounding
+            });
+            taskList.SetNeedsDisplay();
+        };
         var removeTask = new Button("_Remove", true)
         {
             X = Pos.Right(timeEdit) + 1,
@@ -165,6 +196,12 @@ public sealed class App : Toplevel
             Width = 15,
             Height = 1,
             TextAlignment = TextAlignment.Left
+        };
+        removeTask.Clicked += () =>
+        {
+            if (tasks.Count == 0) return;
+            tasks.RemoveAt(taskList.SelectedItem);
+            taskList.SetNeedsDisplay();
         };
 
         var frameAdd = new FrameView("New Task")
@@ -178,6 +215,15 @@ public sealed class App : Toplevel
         frameAdd.Add(addTask, removeTask, labelTime, timeEdit, taskTypeList);
 
         var okButton = new Button("_Ok");
+        okButton.Clicked += () =>
+        {
+            var proc = new Process(int.Parse(Encoding.UTF8.GetString(arriveEdit.Text.ToByteArray())), tasks);
+            _os.AddProcess(proc);
+            _processes.AddProcess(proc);
+            _processTableView.SetNeedsDisplay();
+            Application.RequestStop();
+        };
+
         var cancelButton = new Button("_Cancel");
         cancelButton.Clicked += () => Application.RequestStop();
 
@@ -186,7 +232,7 @@ public sealed class App : Toplevel
         dialog.Add(frame, frameAdd, frameTask);
 
         Application.Run(dialog);
-        
+
         // TODO: task adding logic.
     }
 }

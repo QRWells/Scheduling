@@ -19,27 +19,28 @@ namespace Simulator.UI;
 
 public class GanttSeries : BarSeries
 {
+    private static readonly Attribute[] Colors =
+    {
+        Application.Driver.MakeAttribute(Color.White, Color.Black),
+        Application.Driver.MakeAttribute(Color.Blue, Color.Black),
+        Application.Driver.MakeAttribute(Color.Brown, Color.Black),
+        Application.Driver.MakeAttribute(Color.Cyan, Color.Black),
+        Application.Driver.MakeAttribute(Color.Gray, Color.Black),
+        Application.Driver.MakeAttribute(Color.Green, Color.Black),
+        Application.Driver.MakeAttribute(Color.Magenta, Color.Black),
+        Application.Driver.MakeAttribute(Color.Red, Color.Black),
+        Application.Driver.MakeAttribute(Color.BrightBlue, Color.Black),
+        Application.Driver.MakeAttribute(Color.BrightRed, Color.Black),
+        Application.Driver.MakeAttribute(Color.BrightCyan, Color.Black),
+        Application.Driver.MakeAttribute(Color.BrightGreen, Color.Black),
+        Application.Driver.MakeAttribute(Color.BrightMagenta, Color.Black),
+        Application.Driver.MakeAttribute(Color.BrightYellow, Color.Black)
+    };
+
+    private Dictionary<int, int> _colorMap = new();
     private List<BarSeries> _coreSeries;
     private BarSeries _ioSeries;
     private Os _os;
-    private Dictionary<int, int> _colorMap = new();
-
-    private static readonly Attribute[] Colors = {
-        Application.Driver.MakeAttribute (Color.White, Color.Black),
-        Application.Driver.MakeAttribute (Color.Blue, Color.Black),
-        Application.Driver.MakeAttribute (Color.Brown, Color.Black),
-        Application.Driver.MakeAttribute (Color.Cyan, Color.Black),
-        Application.Driver.MakeAttribute (Color.Gray, Color.Black),
-        Application.Driver.MakeAttribute (Color.Green, Color.Black),
-        Application.Driver.MakeAttribute (Color.Magenta, Color.Black),
-        Application.Driver.MakeAttribute (Color.Red, Color.Black),
-        Application.Driver.MakeAttribute (Color.BrightBlue, Color.Black),
-        Application.Driver.MakeAttribute (Color.BrightRed, Color.Black),
-        Application.Driver.MakeAttribute (Color.BrightCyan, Color.Black),
-        Application.Driver.MakeAttribute (Color.BrightGreen, Color.Black),
-        Application.Driver.MakeAttribute (Color.BrightMagenta, Color.Black),
-        Application.Driver.MakeAttribute (Color.BrightYellow, Color.Black),
-    };
 
     public GanttSeries(Os os)
     {
