@@ -29,19 +29,27 @@ public sealed class App : Toplevel
     {
         _os.SetScheduler(new FCFSScheduler());
         _processTableView = new TableView(_processes) { X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Percent(90) };
+
+        void Reset(IScheduler scheduler)
+        {
+            _os.Reset();
+            _os.SetScheduler(scheduler);
+            _processes.Clear();
+        }
+
         var menu = new MenuBar(new[]
         {
             new MenuBarItem("_Scheduler", new[]
             {
-                new MenuItem("_FCFS", "", () => { _os.SetScheduler(new FCFSScheduler()); }, null, null,
+                new MenuItem("_FCFS", "", () => Reset(new FCFSScheduler()), null, null,
                     Key.ShiftMask | Key.F),
-                new MenuItem("_SJF", "", () => { _os.SetScheduler(new SJFScheduler()); }, null, null,
+                new MenuItem("_SJF", "", () => Reset(new SJFScheduler()), null, null,
                     Key.ShiftMask | Key.D),
-                new MenuItem("_STCF", "", () => { _os.SetScheduler(new STCFScheduler()); }, null, null,
+                new MenuItem("_STCF", "", () => Reset(new STCFScheduler()), null, null,
                     Key.ShiftMask | Key.T),
-                new MenuItem("_RR", "", () => { _os.SetScheduler(new RoundRobinScheduler()); }, null, null,
+                new MenuItem("_RR", "", () => Reset(new RoundRobinScheduler()), null, null,
                     Key.ShiftMask | Key.R),
-                new MenuItem("_MLFQ", "", () => { _os.SetScheduler(new MLFQScheduler()); }, null, null,
+                new MenuItem("_MLFQ", "", () => Reset(new MLFQScheduler()), null, null,
                     Key.ShiftMask | Key.M)
             }),
             new MenuBarItem("_Help", new[]
@@ -232,7 +240,5 @@ public sealed class App : Toplevel
         dialog.Add(frame, frameAdd, frameTask);
 
         Application.Run(dialog);
-
-        // TODO: task adding logic.
     }
 }
