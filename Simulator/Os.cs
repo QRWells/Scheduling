@@ -19,6 +19,8 @@ namespace Simulator;
 
 public class Os
 {
+    private readonly int[] _pIdOfCpu;
+
     /// <summary>
     ///     processes in the OS.
     /// </summary>
@@ -30,17 +32,15 @@ public class Os
     private readonly HashedWheel<int> _waitList = new();
 
     /// <summary>
-    ///     The number of cores in the OS.
-    ///     TODO: add multi-core support
+    ///     Cost of context switch.
+    ///     TODO: add context switch cost
     /// </summary>
-    internal uint Core = 1;
+    private int _contextSwitchCost = 0;
 
     /// <summary>
     ///     the pid of the current running process.
     /// </summary>
     private int _currentPid;
-
-    private readonly int[] _pIdOfCpu;
 
     /// <summary>
     ///     Indicates whether the OS is running.
@@ -52,6 +52,12 @@ public class Os
     ///     TODO: add multi-scheduler support
     /// </summary>
     private IScheduler _scheduler = new FCFSScheduler();
+
+    /// <summary>
+    ///     The number of cores in the OS.
+    ///     TODO: add multi-core support
+    /// </summary>
+    internal uint Core = 1;
 
     public Os(uint core = 1)
     {
@@ -95,7 +101,7 @@ public class Os
     {
         foreach (var process in processes)
         {
-            var pid = GetPId();
+            var pid = GeneratePId();
 
             process.ProcessId = pid;
             _processes.Add(pid, process);
@@ -180,7 +186,7 @@ public class Os
         return _waitList.ExpireTimeouts();
     }
 
-    private int GetPId()
+    private int GeneratePId()
     {
         var pid = 1;
         using var iter = _processes.Keys.GetEnumerator();
@@ -205,5 +211,15 @@ public class Os
     public void Stop()
     {
         _running = false;
+    }
+
+    public void Reset()
+    {
+        Clock = -1;
+        _processes.Clear();
+        _waitList.Clear();
+        for (var i = 0; i < _pIdOfCpu.Length; ++i) _pIdOfCpu[i] = 0;
+        _running = true;
+        _currentPid = -1;
     }
 }

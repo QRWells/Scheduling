@@ -48,4 +48,9 @@ internal class HashedWheelBucket<T>
     {
         return _timeouts.Count == 0;
     }
+
+    public void Clear()
+    {
+        _timeouts.Clear();
+    }
 }

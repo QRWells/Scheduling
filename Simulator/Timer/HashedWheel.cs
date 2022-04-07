@@ -57,4 +57,9 @@ public sealed class HashedWheel<T>
     {
         return _buckets[CurrentTick % WheelSize].ExpireTimeouts();
     }
+
+    public void Clear()
+    {
+        foreach (var bucket in _buckets) bucket.Clear();
+    }
 }
