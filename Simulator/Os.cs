@@ -32,15 +32,14 @@ public class Os
     private readonly HashedWheel<int> _waitList = new();
 
     /// <summary>
-    ///     Cost of context switch.
-    ///     TODO: add context switch cost
-    /// </summary>
-    private int _contextSwitchCost = 0;
-
-    /// <summary>
     ///     the pid of the current running process.
     /// </summary>
     private int _currentPid;
+
+    /// <summary>
+    ///     Time remaining for context switch.
+    /// </summary>
+    private int _remainingTime;
 
     /// <summary>
     ///     Indicates whether the OS is running.
@@ -67,6 +66,11 @@ public class Os
 
         _running = true;
     }
+
+    /// <summary>
+    ///     Cost of context switch.
+    /// </summary>
+    public int ContextSwitchCost { get; set; } = 0;
 
     /// <summary>
     ///     The interval for each step.
@@ -117,6 +121,7 @@ public class Os
 
     public void SwitchProcess(int pid)
     {
+        _remainingTime = ContextSwitchCost;
         if (_currentPid > 0 && _processes[_currentPid].State == ProcessState.Running)
             _processes[_currentPid].State = ProcessState.Waiting;
 
@@ -128,6 +133,7 @@ public class Os
         else if (pid == -1)
         {
             _currentPid = pid;
+            _remainingTime = 0;
         }
         else
         {
@@ -152,7 +158,8 @@ public class Os
     {
         ++Clock;
         _waitList.Tick();
-        _scheduler.OnTick();
+        if (_remainingTime-- == 0)
+            _scheduler.OnTick();
 
         // clean up finished processes
         foreach (var process in

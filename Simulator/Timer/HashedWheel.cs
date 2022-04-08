@@ -16,6 +16,7 @@ namespace Simulator.Timer;
 public sealed class HashedWheel<T>
 {
     private readonly HashedWheelBucket<T>[] _buckets;
+    private readonly List<T> _expired = new();
 
     public HashedWheel(int wheelSize = 8, int resolution = 1)
     {
@@ -44,6 +45,7 @@ public sealed class HashedWheel<T>
     {
         CurrentTick += Resolution;
         _buckets[CurrentTick % _buckets.Length].Tick();
+        _expired.AddRange(_buckets[CurrentTick % _buckets.Length].ExpireTimeouts());
     }
 
     public void AddTimeout(T value, int deadline)
@@ -55,7 +57,10 @@ public sealed class HashedWheel<T>
 
     public IEnumerable<T> ExpireTimeouts()
     {
-        return _buckets[CurrentTick % WheelSize].ExpireTimeouts();
+        var res = new List<T>();
+        _expired.ForEach(t => res.Add(t));
+        _expired.Clear();
+        return res;
     }
 
     public void Clear()
