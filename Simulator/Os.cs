@@ -39,7 +39,7 @@ public class Os
     /// <summary>
     ///     Time remaining for context switch.
     /// </summary>
-    private int _remainingTime;
+    private int _remainingTime = 1;
 
     /// <summary>
     ///     Indicates whether the OS is running.
@@ -146,6 +146,11 @@ public class Os
         return _currentPid < 1 ? null : _processes[_currentPid];
     }
 
+    public int CurrentPid()
+    {
+        return _currentPid;
+    }
+
     public void CompleteProcess(int pid)
     {
         if (_processes.ContainsKey(pid))
@@ -158,8 +163,11 @@ public class Os
     {
         ++Clock;
         _waitList.Tick();
-        if (_remainingTime-- == 0)
+        _remainingTime -= 1;
+        if (_remainingTime == 0)
+        {
             _scheduler.OnTick();
+        }
 
         // clean up finished processes
         foreach (var process in

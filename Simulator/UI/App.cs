@@ -15,12 +15,14 @@ using System.Text;
 using NStack;
 using Simulator.Schedulers;
 using Terminal.Gui;
+using Terminal.Gui.Graphs;
 
 namespace Simulator.UI;
 
 public sealed class App : Toplevel
 {
-    private readonly GraphView _graphView = new() { X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Percent(90) };
+    private readonly TimeLineSeries _timeLineSeries = new();
+    private readonly GraphView _graphView = new() { X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Fill() };
     private readonly Os _os = new();
     private readonly ProcessDataTable _processes = new();
     private readonly TableView _processTableView;
@@ -74,6 +76,8 @@ public sealed class App : Toplevel
 
         Add(statusBar);
 
+        _graphView.Series.Add(_timeLineSeries);
+
         var tab = new TabView { X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Fill() };
         tab.AddTab(new TabView.Tab("Graph", _graphView), true);
         tab.AddTab(new TabView.Tab("SysInfo", _processTableView), false);
@@ -96,9 +100,10 @@ public sealed class App : Toplevel
     private void Step()
     {
         _os.Step();
-        // TODO: Gantt graph update logic
+        _timeLineSeries.Tick(_os.CurrentPid(), _os.Clock);
         _processes.Update();
         _processTableView.SetNeedsDisplay();
+        _graphView.SetNeedsDisplay();
     }
 
     private void AddProcess()
