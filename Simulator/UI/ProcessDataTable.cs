@@ -53,4 +53,10 @@ public class ProcessDataTable : DataTable
         res["TimeHaveBurst"] = proc.TimeHaveBurst;
         return res;
     }
+
+    public void ResetInfo()
+    {
+        _processes.Clear();
+        Rows.Clear();
+    }
 }

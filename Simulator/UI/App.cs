@@ -36,7 +36,7 @@ public sealed class App : Toplevel
         {
             _os.Reset();
             _os.SetScheduler(scheduler);
-            _processes.Clear();
+            _processes.ResetInfo();
         }
 
         var menu = new MenuBar(new[]
