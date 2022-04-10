@@ -147,12 +147,12 @@ public class Os
     }
 
     /// <summary>
-    /// Get current process id.
+    ///     Get current process id.
     /// </summary>
     /// <returns> -2 for scheduling, -1 for idle, above 0 for processes</returns>
     public int CurrentPid()
     {
-        return _remainingTime > 0 ? _currentPid : -2;
+        return _remainingTime != 0 ? -2 : _currentPid;
     }
 
     public void CompleteProcess(int pid)
@@ -245,6 +245,7 @@ public class Os
         _waitList.Clear();
         for (var i = 0; i < _pIdOfCpu.Length; ++i) _pIdOfCpu[i] = 0;
         _running = true;
-        _currentPid = -1;
+        _currentPid = 0;
+        _remainingTime = 0;
     }
 }
