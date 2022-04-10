@@ -15,22 +15,27 @@ namespace Simulator.Schedulers;
 
 public interface IScheduler
 {
-    internal Os Os { get; set; }
+    internal Os? Os { get; set; }
 
     void OnProcessReady(int pid);
     void SwitchProcess();
 
     void OnTick()
     {
-        foreach (var pid in Os.ExpiredTimeout()) OnProcessReady(pid);
+        foreach (var pid in Os!.ExpiredTimeout()) OnProcessReady(pid);
 
         BurstProcess();
     }
 
+    void OnSwitching()
+    {
+        foreach (var pid in Os!.ExpiredTimeout()) OnProcessReady(pid);
+    }
+
     void BurstProcess()
     {
-        var clock = Os.Clock;
-        var process = Os.CurrentProcess();
+        var clock = Os!.Clock;
+        var process = Os!.CurrentProcess();
 
         if (process == null)
         {
@@ -81,8 +86,7 @@ public interface IScheduler
     /// <param name="pid"></param>
     void RunIoBoundTask(int duration, int pid)
     {
-        var clock = Os.Clock;
-        var p = Os.GetProcess(pid);
+        var p = Os!.GetProcess(pid);
         var isCompleted = p.BumpToNext(out _);
         if (isCompleted)
             Os.CompleteProcess(pid);

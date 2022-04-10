@@ -16,9 +16,9 @@ namespace Simulator.Schedulers;
 public sealed class SJFScheduler : IScheduler
 {
     private readonly PriorityQueue<int, int> _shortestJobFirstQueue = new();
-    private Os _os;
+    private Os? _os;
 
-    Os IScheduler.Os
+    Os? IScheduler.Os
     {
         get => _os;
         set => _os = value;
@@ -26,7 +26,7 @@ public sealed class SJFScheduler : IScheduler
 
     public void OnProcessReady(int pid)
     {
-        var process = _os.GetProcess(pid);
+        var process = _os!.GetProcess(pid);
         var burstTime = process.BurstTime;
         _shortestJobFirstQueue.Enqueue(pid, burstTime);
     }
@@ -34,8 +34,8 @@ public sealed class SJFScheduler : IScheduler
     public void SwitchProcess()
     {
         if (_shortestJobFirstQueue.TryDequeue(out var pid, out _))
-            _os.SwitchProcess(pid);
+            _os!.SwitchProcess(pid);
         else
-            _os.SwitchProcess(-1);
+            _os!.SwitchProcess(-1);
     }
 }

@@ -16,17 +16,16 @@ namespace Simulator.Schedulers;
 public sealed class MLFQScheduler : IScheduler
 {
     private readonly LinkedList<int>[] _queues = new LinkedList<int>[3];
+    private readonly int[] _timeSlice = new int[2];
     private readonly Dictionary<int, int> _usedTimeSlice = new();
-    private Os _os;
+    private Os? _os;
 
     /// <summary>
     ///     pid, priority
     /// </summary>
     private (int, int) _runningProcess;
 
-    private readonly int[] _timeSlice = new int[2];
-
-    Os IScheduler.Os
+    Os? IScheduler.Os
     {
         get => _os;
         set => _os = value;
@@ -47,12 +46,12 @@ public sealed class MLFQScheduler : IScheduler
             var pid = _queues[i].Last!.Value;
             _queues[i].RemoveLast();
             _runningProcess = (pid, i);
-            _os.SwitchProcess(pid);
+            _os!.SwitchProcess(pid);
             return;
         }
 
         _runningProcess.Item1 = -1;
-        _os.SwitchProcess(-1);
+        _os!.SwitchProcess(-1);
     }
 
     public void OnProcessBurst(int pid)
@@ -68,7 +67,7 @@ public sealed class MLFQScheduler : IScheduler
         else
         {
             var usedTimeSlice = _usedTimeSlice.GetValueOrDefault(pid, 0);
-            if (usedTimeSlice >= _timeSlice[priority] && _os.IsProcessRunning(pid))
+            if (usedTimeSlice >= _timeSlice[priority] && _os!.IsProcessRunning(pid))
             {
                 LevelDown(pid);
                 _usedTimeSlice.Add(pid, 0);
@@ -76,7 +75,7 @@ public sealed class MLFQScheduler : IScheduler
             }
             else
             {
-                _usedTimeSlice.Add(pid, usedTimeSlice + _os.Interval);
+                _usedTimeSlice.Add(pid, usedTimeSlice + _os!.Interval);
             }
         }
     }

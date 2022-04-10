@@ -16,9 +16,9 @@ namespace Simulator.Schedulers;
 public sealed class FCFSScheduler : IScheduler
 {
     private readonly Queue<int> _readyQueue = new();
-    private Os _os;
+    private Os? _os = null;
 
-    Os IScheduler.Os
+    Os? IScheduler.Os
     {
         get => _os;
         set => _os = value;
@@ -32,8 +32,8 @@ public sealed class FCFSScheduler : IScheduler
     public void SwitchProcess()
     {
         if (_readyQueue.TryDequeue(out var pid))
-            _os.SwitchProcess(pid);
+            _os!.SwitchProcess(pid);
         else
-            _os.SwitchProcess(-1);
+            _os!.SwitchProcess(-1);
     }
 }

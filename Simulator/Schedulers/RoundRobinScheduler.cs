@@ -18,14 +18,14 @@ public sealed class RoundRobinScheduler : IScheduler
     private readonly Queue<int> _readyQueue = new();
     private readonly int _timeSlice;
     private readonly Dictionary<int, int> _usedTimeSlice = new();
-    private Os _os;
+    private Os? _os;
 
     public RoundRobinScheduler(int timeSlice = 10)
     {
         _timeSlice = timeSlice - 1;
     }
 
-    Os IScheduler.Os
+    Os? IScheduler.Os
     {
         get => _os;
         set => _os = value;
@@ -39,15 +39,15 @@ public sealed class RoundRobinScheduler : IScheduler
     public void SwitchProcess()
     {
         if (_readyQueue.TryDequeue(out var pid))
-            _os.SwitchProcess(pid);
+            _os!.SwitchProcess(pid);
         else
-            _os.SwitchProcess(-1);
+            _os!.SwitchProcess(-1);
     }
 
     public void OnProcessBurst(int pid)
     {
         var usedTimeSlice = _usedTimeSlice.GetValueOrDefault(pid, 0);
-        if (usedTimeSlice >= _timeSlice && _os.IsProcessRunning(pid))
+        if (usedTimeSlice >= _timeSlice && _os!.IsProcessRunning(pid))
         {
             _readyQueue.Enqueue(pid);
             _usedTimeSlice[pid] = 0;
@@ -55,7 +55,7 @@ public sealed class RoundRobinScheduler : IScheduler
         }
         else
         {
-            _usedTimeSlice[pid] = usedTimeSlice + _os.Interval;
+            _usedTimeSlice[pid] = usedTimeSlice + _os!.Interval;
         }
     }
 }

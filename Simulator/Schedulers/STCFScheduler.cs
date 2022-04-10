@@ -16,9 +16,9 @@ namespace Simulator.Schedulers;
 public sealed class STCFScheduler : IScheduler
 {
     private readonly PriorityQueue<int, int> _shortestJobFirstQueue = new();
-    private Os _os;
+    private Os? _os;
 
-    Os IScheduler.Os
+    Os? IScheduler.Os
     {
         get => _os;
         set => _os = value;
@@ -26,7 +26,7 @@ public sealed class STCFScheduler : IScheduler
 
     public void OnProcessReady(int pid)
     {
-        var process = _os.GetProcess(pid);
+        var process = _os!.GetProcess(pid);
         var burstTime = process.RemainingTime;
         _shortestJobFirstQueue.Enqueue(pid, burstTime);
     }
@@ -34,17 +34,17 @@ public sealed class STCFScheduler : IScheduler
     public void SwitchProcess()
     {
         if (_shortestJobFirstQueue.TryDequeue(out var pid, out _))
-            _os.SwitchProcess(pid);
+            _os!.SwitchProcess(pid);
         else
-            _os.SwitchProcess(-1);
+            _os!.SwitchProcess(-1);
     }
 
     public void OnProcessBurst(int pid)
     {
-        var remainingTime = _os.GetProcess(pid).RemainingTime;
+        var remainingTime = _os!.GetProcess(pid).RemainingTime;
 
         // Current process is shorter than the shortest job in the queue.
-        if (!_shortestJobFirstQueue.TryPeek(out var id, out var remain)
+        if (!_shortestJobFirstQueue.TryPeek(out _, out var remain)
             || remain > remainingTime)
             return;
 

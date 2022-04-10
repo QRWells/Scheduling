@@ -18,10 +18,10 @@ public class FairShareScheduler : IScheduler
     private readonly Dictionary<int, int> _processTicket = new();
     private readonly Random _random = new();
     private int _nextPId = -1;
-    private Os _os;
+    private Os? _os;
     private int _totalTicket;
 
-    Os IScheduler.Os
+    Os? IScheduler.Os
     {
         get => _os;
         set => _os = value;
@@ -29,14 +29,14 @@ public class FairShareScheduler : IScheduler
 
     public void OnProcessReady(int pid)
     {
-        var ticket = _os.GetProcess(pid).Priority * 100;
+        var ticket = _os!.GetProcess(pid).Priority * 100;
         _totalTicket += ticket;
         _processTicket.Add(pid, ticket);
     }
 
     public void SwitchProcess()
     {
-        _os.SwitchProcess(_nextPId);
+        _os!.SwitchProcess(_nextPId);
     }
 
     public void OnProcessBurst(int pid)
@@ -44,7 +44,7 @@ public class FairShareScheduler : IScheduler
         var list = new List<int>();
         foreach (var (id, _) in _processTicket)
         {
-            var p = _os.GetProcess(id);
+            var p = _os!.GetProcess(id);
             if (!p.IsCompleted) continue;
             _totalTicket -= p.Priority * 100;
             list.Add(id);
