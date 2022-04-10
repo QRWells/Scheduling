@@ -11,24 +11,27 @@
 
 #endregion
 
+using System.Globalization;
 using System.Text;
 using NStack;
 using Simulator.Schedulers;
 using Terminal.Gui;
-using Terminal.Gui.Graphs;
 
 namespace Simulator.UI;
 
 public sealed class App : Toplevel
 {
-    private readonly TimeLineSeries _timeLineSeries = new();
-    private readonly GraphView _graphView = new() { X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Fill() };
+    private readonly GraphView _graphView = new()
+        { X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Fill(), ColorScheme = Colors.TopLevel };
+
     private readonly Os _os = new();
     private readonly ProcessDataTable _processes = new();
     private readonly TableView _processTableView;
+    private readonly TimeLineSeries _timeLineSeries = new();
 
     public App()
     {
+        ColorScheme = Colors.TopLevel;
         _os.SetScheduler(new FCFSScheduler());
         _processTableView = new TableView(_processes) { X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Percent(90) };
 
@@ -76,13 +79,25 @@ public sealed class App : Toplevel
 
         Add(statusBar);
 
+        _graphView.ScrollOffset = new PointF(0, _graphView.Bounds.Height);
+
+        _graphView.MarginLeft = 5;
+        _graphView.MarginBottom = 2;
+        _graphView.AxisX.Text = "Tick";
+        _graphView.AxisX.Increment = 10;
+        _graphView.AxisX.ShowLabelsEvery = 1;
+
+        _graphView.AxisY.Text = "Process Id";
+        _graphView.AxisY.Increment = _timeLineSeries.Width;
+        _graphView.AxisY.LabelGetter = i => (i.Value / _timeLineSeries.Width).ToString(CultureInfo.CurrentCulture);
         _graphView.Series.Add(_timeLineSeries);
 
-        var tab = new TabView { X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Fill() };
+        var tab = new TabView { X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Fill(), ColorScheme = Colors.TopLevel };
         tab.AddTab(new TabView.Tab("Graph", _graphView), true);
         tab.AddTab(new TabView.Tab("SysInfo", _processTableView), false);
 
-        var window = new Window { X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Fill() };
+        var window = new Window
+            { X = 0, Y = 0, Width = Dim.Fill(), Height = Dim.Fill(), ColorScheme = Colors.TopLevel };
 
         Add(window);
 
@@ -108,18 +123,27 @@ public sealed class App : Toplevel
 
     private void AddProcess()
     {
-        var frame = new FrameView("Process Options")
+        var infoFrame = new FrameView("Process Options")
         {
             X = 0,
             Y = 0,
-            Width = Dim.Percent(20),
+            Width = Dim.Percent(40),
             Height = 5
         };
 
+        var nameLabel = new Label("Name: ")
+            { X = 0, Y = 0, Width = 10, Height = 1, TextAlignment = TextAlignment.Left };
+        var nameEdit = new TextField("")
+        {
+            X = Pos.Right(nameLabel) + 1,
+            Y = Pos.Top(nameLabel),
+            Width = 20,
+            Height = 1
+        };
         var arriveLabel = new Label("Arrive at:")
         {
             X = 0,
-            Y = 0,
+            Y = Pos.Bottom(nameLabel) + 1,
             Width = 10,
             Height = 1,
             TextAlignment = TextAlignment.Left
@@ -128,7 +152,7 @@ public sealed class App : Toplevel
         {
             X = Pos.Right(arriveLabel) + 1,
             Y = Pos.Top(arriveLabel),
-            Width = 5,
+            Width = 20,
             Height = 1
         };
         arriveEdit.TextChanging += args =>
@@ -137,15 +161,15 @@ public sealed class App : Toplevel
             if (!Unicode.IsNumber(args.NewText[0]))
                 args.Cancel = true;
         };
-        frame.Add(arriveLabel);
-        frame.Add(arriveEdit);
+        infoFrame.Add(arriveLabel, arriveEdit);
+        infoFrame.Add(nameLabel, nameEdit);
 
 
         var frameTask = new FrameView("Tasks")
         {
             X = 0,
-            Y = Pos.Bottom(frame),
-            Width = Dim.Percent(80),
+            Y = Pos.Bottom(infoFrame),
+            Width = Dim.Fill(),
             Height = Dim.Percent(60)
         };
         var tasks = new List<Task>();
@@ -219,9 +243,9 @@ public sealed class App : Toplevel
 
         var frameAdd = new FrameView("New Task")
         {
-            X = Pos.Right(frame) + 1,
+            X = Pos.Right(infoFrame) + 1,
             Y = 0,
-            Width = Dim.Percent(60),
+            Width = Dim.Percent(40),
             Height = 5
         };
 
@@ -230,10 +254,16 @@ public sealed class App : Toplevel
         var okButton = new Button("_Ok");
         okButton.Clicked += () =>
         {
-            var proc = new Process(int.Parse(Encoding.UTF8.GetString(arriveEdit.Text.ToByteArray())), tasks);
-            _os.AddProcess(proc);
-            _processes.AddProcess(proc);
-            _processTableView.SetNeedsDisplay();
+            if (tasks.Count != 0)
+            {
+                var proc = new Process(int.Parse(Encoding.UTF8.GetString(arriveEdit.Text.ToByteArray())), tasks)
+                    { Name = Encoding.UTF8.GetString(nameEdit.Text.ToByteArray()) };
+                _os.AddProcess(proc);
+                _processes.AddProcess(proc);
+                _processTableView.SetNeedsDisplay();
+                _timeLineSeries.AddProcess(proc);
+            }
+
             Application.RequestStop();
         };
 
@@ -242,7 +272,7 @@ public sealed class App : Toplevel
 
         var dialog = new Dialog("Add Process", okButton, cancelButton);
 
-        dialog.Add(frame, frameAdd, frameTask);
+        dialog.Add(infoFrame, frameAdd, frameTask);
 
         Application.Run(dialog);
     }

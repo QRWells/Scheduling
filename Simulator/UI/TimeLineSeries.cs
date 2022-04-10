@@ -19,15 +19,32 @@ namespace Simulator.UI;
 
 public class TimeLineSeries : ISeries
 {
+    // TODO: add random color assign
+    private static readonly Attribute[] Colors =
+    {
+        Application.Driver.MakeAttribute(Color.White, Color.Black),
+        Application.Driver.MakeAttribute(Color.Blue, Color.Black),
+        Application.Driver.MakeAttribute(Color.Brown, Color.Black),
+        Application.Driver.MakeAttribute(Color.Cyan, Color.Black),
+        Application.Driver.MakeAttribute(Color.Gray, Color.Black),
+        Application.Driver.MakeAttribute(Color.Green, Color.Black),
+        Application.Driver.MakeAttribute(Color.Magenta, Color.Black),
+        Application.Driver.MakeAttribute(Color.Red, Color.Black),
+        Application.Driver.MakeAttribute(Color.BrightBlue, Color.Black),
+        Application.Driver.MakeAttribute(Color.BrightRed, Color.Black),
+        Application.Driver.MakeAttribute(Color.BrightCyan, Color.Black),
+        Application.Driver.MakeAttribute(Color.BrightGreen, Color.Black),
+        Application.Driver.MakeAttribute(Color.BrightMagenta, Color.Black),
+        Application.Driver.MakeAttribute(Color.BrightYellow, Color.Black)
+    };
+
     public readonly List<Timeline> Timelines = new();
 
-    public int Width { get; set; } = 1;
+    public int Width { get; set; } = 2;
 
     public float Offset { get; set; } = 0;
 
     public bool DrawLabels { get; set; } = true;
-
-    public Attribute? OverrideBarColor { get; set; }
 
     public void DrawSeries(GraphView graph, Rect drawBounds, RectangleF graphBounds)
     {
@@ -44,31 +61,25 @@ public class TimeLineSeries : ISeries
         }
     }
 
-    protected virtual GraphCellToRender AdjustColor(
-        GraphCellToRender graphCellToRender)
-    {
-        if (OverrideBarColor.HasValue)
-            graphCellToRender.Color = OverrideBarColor;
-        return graphCellToRender;
-    }
-
     public void Tick(int pid, int clock)
     {
-        if (!Timelines.Exists(time => time.PId == pid))
-            Timelines.Add(new Timeline { PId = pid });
-
         foreach (var timeline in Timelines) timeline.Tick(pid, clock);
     }
 
-    public void DrawTimeLine(GraphView graph, int height, Timeline beingDrawn)
+    public void AddProcess(in Process process)
     {
-        var graphCellToRender = AdjustColor(beingDrawn.Fill);
+        Timelines.Add(new Timeline(process.ProcessId) { Name = process.Name ?? process.ProcessId.ToString() });
+    }
+
+    private static void DrawTimeLine(GraphView graph, int height, Timeline beingDrawn)
+    {
+        var graphCellToRender = beingDrawn.Fill;
         if (graphCellToRender.Color.HasValue)
             Application.Driver.SetAttribute(graphCellToRender.Color.Value);
         foreach (var interval in beingDrawn.Intervals)
         {
-            var left = graph.GraphSpaceToScreen(new PointF(Math.Min(graph.Bounds.Width - 1, interval.Left), height));
-            var right = graph.GraphSpaceToScreen(new PointF(Math.Min(graph.Bounds.Width - 1, interval.Right), height));
+            var left = new Point((int)(Math.Min(graph.Bounds.Width - 1, interval.Left) + graph.MarginLeft), height);
+            var right = new Point((int)(Math.Min(graph.Bounds.Width - 1, interval.Right) + graph.MarginLeft), height);
             graph.DrawLine(left, right, graphCellToRender.Rune);
         }
 
@@ -77,15 +88,22 @@ public class TimeLineSeries : ISeries
 
     public class Timeline
     {
+        private readonly int _clock;
+
+        public Timeline(int pid)
+        {
+            PId = pid;
+            Fill = new GraphCellToRender('\u2593', Colors[pid % Colors.Length]);
+        }
+
         public int PId { get; set; }
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         ///     The color and character that will be rendered in the console
         ///     when the bar extends over it
         /// </summary>
-        public GraphCellToRender Fill { get; set; } =
-            new(' ', new Attribute(Color.White, Color.Black));
+        public GraphCellToRender Fill { get; set; }
 
         public List<Interval> Intervals { get; set; } = new();
 
